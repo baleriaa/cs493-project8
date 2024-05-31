@@ -33,10 +33,9 @@ async function getImageInfoById(id) {
     const results = await collection
       .find({ _id: new ObjectId(id) })
       .toArray();
-      
+
     return results[0];
   }
-
 }
 
 /*
@@ -104,5 +103,25 @@ router.get('/:id', async (req, res, next) => {
     })
   }
 })
+
+router.get('/:id', async (req, res, next) => {
+  try {
+    const photo = await getImageInfoById(req.params.id);
+    if (photo) {
+      delete photo.path;
+      photo.url = `/media/photos/${photo.filename}`;
+      res.status(200).send(photo);
+    } else {
+      next();
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.use(
+  `/media/images`,
+  express.static(`${__dirname}/uploads`)
+);
 
 module.exports = router
