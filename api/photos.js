@@ -12,11 +12,41 @@ const {
 } = require('../models/photo')
 
 const router = Router()
+const multer = require('multer')
+const crypto = require('crypto')
+
+async function saveImageInfo(image) {
+  const db = getDBReference();
+  const collection = db.collection('images');
+  const result = await collection.insertOne(image);
+  
+  return result.insertedId;
+}
 
 /*
  * POST /photos - Route to create a new photo.
  */
-router.post('/', async (req, res) => {
+router.post(
+  '/', upload.single('image'), async (req, res) => {
+  if (req.file && req.body && req.body.businessId) {
+    // TODO ...
+  } else {
+    res.status(400).send({
+      err: "Request body needs 'image' file and 'businessId'."
+    })
+  }
+  try {
+    const image = {
+      contentType: req.file.mimetype,
+      filename: req.file.filename,
+      path: req.file.path,
+      businessId: req.body.businessId
+    };
+    const id = await saveImageInfo(image);
+    res.status(200).send({ id: id });
+  } catch (err) {
+    next(err);
+  }
   if (validateAgainstSchema(req.body, PhotoSchema)) {
     try {
       const id = await insertNewPhoto(req.body)
