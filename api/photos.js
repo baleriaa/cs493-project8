@@ -17,10 +17,26 @@ const crypto = require('crypto')
 
 async function saveImageInfo(image) {
   const db = getDBReference();
-  const collection = db.collection('images');
+  const collection = db.collection('photos');
   const result = await collection.insertOne(image);
   
   return result.insertedId;
+}
+
+async function getImageInfoById(id) {
+  const db = getDBReference();
+  const collection = db.collection('photos');
+
+  if (!ObjectId.isValid(id)) {
+    return null;
+  } else {
+    const results = await collection
+      .find({ _id: new ObjectId(id) })
+      .toArray();
+      
+    return results[0];
+  }
+
 }
 
 /*
