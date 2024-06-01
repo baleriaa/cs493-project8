@@ -65,26 +65,38 @@ function savePhotoFile(photo) {
   });
 }
 
+function removeUploadedFile(file) {
+  return new Promise((resolve, reject) => {
+    fs.unlink(file.path, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 /*
  * POST /photos - Route to create a new photo.
  */
 router.post(
-  '/', upload.single('image'), async (req, res) => {
+  '/', upload.single('photo'), async (req, res) => {
   if (req.file && req.body && req.body.businessId) {
     // TODO ...
   } else {
     res.status(400).send({
-      err: "Request body needs 'image' file and 'businessId'."
+      err: "Request body needs 'photo' file and 'businessId'."
     })
   }
   try {
-    const image = {
+    const photo = {
       contentType: req.file.mimetype,
       filename: req.file.filename,
       path: req.file.path,
       businessId: req.body.businessId
     };
-    const id = await saveImageInfo(image);
+    const id = await savePhotoFile(photo);
     res.status(200).send({ id: id });
   } catch (err) {
     next(err);
