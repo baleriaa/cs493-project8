@@ -27,13 +27,14 @@ async function saveImageInfo(image) {
 async function getImageInfoById(id) {
   const db = getDBReference();
   const collection = db.collection('photos');
+  const bucket =
+    new GridFSBucket(db, { bucketName: 'photos'})
 
   if (!ObjectId.isValid(id)) {
     return null;
   } else {
-    const results = await collection
-      .find({ _id: new ObjectId(id) })
-      .toArray();
+    const results = 
+      await bucket.find({ _id: new ObjectId(id)}).toArray();
 
     return results[0];
   }
@@ -77,6 +78,7 @@ function removeUploadedFile(file) {
   });
 }
 
+// Unsure of where to put this await removeUploadedFile(req.file);
 /*
  * POST /photos - Route to create a new photo.
  */
