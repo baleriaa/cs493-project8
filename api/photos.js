@@ -14,6 +14,7 @@ const {
 const router = Router()
 const multer = require('multer')
 const crypto = require('crypto')
+const fs = require('fs')
 
 async function saveImageInfo(image) {
   const db = getDBReference();
@@ -36,6 +37,32 @@ async function getImageInfoById(id) {
 
     return results[0];
   }
+}
+
+function savePhotoFile(photo) {
+  return new Promise((resolve, reject) => {
+    const db = getDBReference();
+
+    const bucket = 
+      new GridFSBucket(db, { bucketName: 'photos' });
+
+    const metadata = {
+      contentType: photo.contentType,
+      businessId: photo.businessId
+    };
+
+    const uploadStream = bucket. openUploadStream(
+      image.filename, 
+      { metadata: metadata}
+    );
+
+    fs.createReadStream(photo.path).pipe(uploadStream).on('error', (err) => {
+      reject(err);
+    })
+    .on('finish', (result) => {
+      resolve(result._id);
+    });
+  });
 }
 
 /*
@@ -62,6 +89,7 @@ router.post(
   } catch (err) {
     next(err);
   }
+
   if (validateAgainstSchema(req.body, PhotoSchema)) {
     try {
       const id = await insertNewPhoto(req.body)
@@ -104,6 +132,9 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
+/*
+ * GET /photos/{id} - Route to fetch info about a specific photo.
+ */
 router.get('/:id', async (req, res, next) => {
   try {
     const photo = await getImageInfoById(req.params.id);
